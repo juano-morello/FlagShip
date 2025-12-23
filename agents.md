@@ -183,7 +183,7 @@ withTenantContext({ orgId, userId, role }, (db) => ...)
 
 ---
 
-## 7. Development Methodology (SDD + TDD + strict subagent workflow)
+## 7. Development Methodology (SDD + Strict TDD + Multi-Agent Review)
 
 ### Spec-Driven Development (SDD)
 - Every feature MUST begin with a spec at:
@@ -197,73 +197,245 @@ withTenantContext({ orgId, userId, role }, (db) => ...)
 - Written ONLY by forge-spec-writer
 - Implementation may not begin without a spec.
 
-### Test-Driven Development (TDD)
+### Strict Test-Driven Development (TDD) - ENFORCED
 
-#### Backend
-- ~100% unit test coverage
-- Integration tests for flows (auth, orgs, billing, keys, webhooks)
+**TDD is MANDATORY. Implementation agents MUST NOT write any implementation code before writing comprehensive tests.**
 
-#### Frontend
-- Storybook stories for every component
-- Unit tests for state/logic
-- Playwright flows for all core paths
+#### Backend TDD Workflow (Exact Order)
+1. **Write Tests First**: Based on spec's acceptance criteria and test plan, write ALL necessary unit tests BEFORE any implementation code
+   - Tests must cover: happy paths, edge cases, error conditions, boundary conditions
+   - Tests must be comprehensive enough to validate all acceptance criteria
+2. **Implement Minimal Logic**: Write the minimum business logic required to make all tests pass
+   - Focus on making tests green, not on premature optimization
+   - Implement only what's needed to satisfy test requirements
+3. **Refactor**: Once all tests pass, refactor for:
+   - Readability and maintainability
+   - Performance optimization (if needed)
+   - Code organization and structure
+   - Adherence to project conventions and architecture rules
+4. **Verify**: Re-run all tests to ensure refactoring didn't break functionality
+
+**Enforcement**: `forge-backend` MUST NOT write any implementation code before writing comprehensive tests. If implementation code is detected before tests, the agent must stop and write tests first.
+
+#### Frontend TDD Workflow (Exact Order)
+1. **Write Tests First**:
+   - Create component tests for all UI components
+   - Write Storybook stories for every component with all relevant states and variants
+   - Include unit tests for any state management, hooks, or business logic
+   - Cover user interaction flows and edge cases
+2. **Implement Minimal UI/Logic**: Build components and pages with just enough code to pass tests and render stories correctly
+3. **Refactor**: Improve component structure, styling, accessibility, and performance while keeping tests green
+4. **Verify**: Re-run all tests and validate Storybook stories
+
+**Enforcement**: `forge-frontend` MUST NOT create component implementation code before writing component tests and Storybook stories.
 
 #### Workers
-- Unit tests for handlers
+- Unit tests for handlers MUST be written first
 - Integration tests for multi-step external interactions
+
+### Context7 Integration (MANDATORY)
+
+**All agents** (implementation and review) MUST use Context7 to:
+- Consult the most current documentation for languages, frameworks, and libraries
+- Verify API usage, best practices, and patterns against official documentation
+- Check for deprecated methods or outdated patterns
+- Ensure code follows the latest recommended approaches
+
+**Specific Context7 Usage**:
+- Before implementing: Query Context7 for current best practices
+- During review: Validate code against Context7 documentation
+- When in doubt: Always defer to Context7 for authoritative guidance
 
 ---
 
 ## 8. Subagent Roles (Strict boundaries)
 
-### forge-spec-writer
+### Implementation Agents
+
+#### forge-spec-writer
 - ONLY modifies /docs/specs/**
 - Writes specs, acceptance criteria, and test plans
 - NO code changes allowed
 
-### forge-backend
+#### forge-backend
 - ONLY modifies:
     - apps/api/**
     - apps/worker/**
     - packages/db/**
     - packages/shared/**
+- **MUST follow strict TDD**: Write tests FIRST, then implement
 - Implements backend + worker logic according to specs
-- Writes backend tests
+- MUST use Context7 for library best practices
 - MUST NOT modify frontend files
+- MUST NOT write implementation before tests
 
-### forge-frontend
+#### forge-frontend
 - ONLY modifies:
     - apps/web/**
     - packages/ui/**
     - Storybook stories
     - Frontend unit tests
     - Playwright specs
+- **MUST follow strict TDD**: Write tests + Storybook stories FIRST, then implement
 - Implements UI/pages according to specs
+- MUST use Context7 for library best practices
 - MUST NOT modify backend or db schema
+- MUST NOT write implementation before tests and stories
 
-### forge-code-review
-- Reviews code written by forge-backend or forge-frontend
-- May refactor, restructure, or improve tests
-- May NOT expand features beyond the spec
-- Ensures compliance with architecture, RLS, and TDD rules
-- Runs after EVERY code contribution
+### Review Agents (Multi-Agent Orchestrated Review)
+
+#### forge-backend-code-reviewer
+**Scope**: Reviews all backend code
+- `apps/api/**` (NestJS API server)
+- `apps/worker/**` (BullMQ workers)
+- `packages/db/**` (Database schema, migrations, RLS policies)
+- `packages/shared/**` (Shared types, DTOs, constants)
+
+**Responsibilities**:
+- Verify TDD compliance: confirm tests were written first and cover all acceptance criteria
+- Validate RLS enforcement and multi-tenancy rules
+- Check error handling, edge cases, and security vulnerabilities
+- Ensure adherence to NestJS and Drizzle ORM best practices
+- Verify test coverage meets >90% threshold
+- Validate integration with worker queues and external services
+- Check for proper use of dependency injection and separation of concerns
+- **MUST use Context7** to verify code follows current best practices
+
+#### forge-frontend-code-reviewer
+**Scope**: Reviews all frontend code
+- `apps/web/**` (Next.js application)
+- `packages/ui/**` (Shared UI components)
+- Storybook stories
+- Frontend unit and component tests
+
+**Responsibilities**:
+- Verify TDD compliance: confirm component tests and Storybook stories were created before implementation
+- **Access to Playwright**: Run and validate end-to-end test flows for UI interactions
+- **Access to Figma** (if configured): Compare implemented designs against Figma specifications
+- Check accessibility (a11y) compliance, responsive design, and cross-browser compatibility
+- Validate proper use of Next.js App Router, Server Components, and Client Components
+- Ensure shadcn/ui and design system consistency
+- Review state management, hooks usage, and performance optimizations
+- **MUST use Context7** to verify code follows current best practices
+
+#### forge-end-to-end-code-reviewer
+**Scope**: Reviews the complete feature implementation across the entire stack
+
+**Responsibilities**:
+- Execute full end-to-end flows to validate the feature works as specified
+- Test integration between frontend, backend, database, and worker components
+- Identify bugs, performance bottlenecks, security issues, and UX problems
+- Verify the implementation satisfies ALL acceptance criteria from the original spec
+- Check for edge cases or failure scenarios not covered by unit/component tests
+- Validate multi-tenancy and RLS work correctly in real-world scenarios
+- **Create follow-up tasks**: When issues are found, create new tasks with:
+  - Clear description of the issue
+  - Steps to reproduce
+  - Suggested fix or area to investigate
+  - Priority level
+- **Trigger workflow restart**: For critical issues, restart the implementation flow with new tasks
+
+#### forge-review-orchestrator
+**Role**: Manages the multi-agent code review workflow
+
+**Orchestration Flow**:
+1. **Trigger**: Activated when `forge-backend` or `forge-frontend` completes implementation
+2. **Parallel Review**: Simultaneously invoke:
+   - `forge-backend-code-reviewer` (if backend changes exist)
+   - `forge-frontend-code-reviewer` (if frontend changes exist)
+3. **Collect Feedback**: Aggregate all feedback, issues, and suggestions from both reviewers
+4. **Decision Point**:
+   - If critical issues found: Send back to implementation phase with specific tasks
+   - If minor issues found: Request refinements from the appropriate implementation agent
+   - If approved: Proceed to `forge-end-to-end-code-reviewer`
+5. **End-to-End Review**: Invoke `forge-end-to-end-code-reviewer` for full integration testing
+6. **Final Decision**:
+   - If issues found: Create follow-up tasks and restart workflow from step 2
+   - If approved: Mark feature as complete
+7. **Documentation**: Generate a review summary documenting all feedback, changes made, and final approval
+
+**Orchestrator Rules**:
+- Must ensure all relevant reviewers are invoked based on what code changed
+- Cannot skip any review stage
+- Must enforce that all critical issues are resolved before proceeding
+- Maintains review history and tracks iterations
 
 ---
 
 ## 9. Mandatory workflow for EVERY feature
 
-1. forge-spec-writer  
-   → writes/updates spec file
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│                           1. SPECIFICATION                                  │
+│                                                                             │
+│   User Request ──▶ forge-spec-writer ──▶ /docs/specs/<epic>/<story>.md     │
+│                                                                             │
+│   Output: Acceptance criteria, tasks, test plan                            │
+└─────────────────────────────────┬───────────────────────────────────────────┘
+                                  │
+                                  ▼
+┌────────────────────────────────────────────────────────────────────────────┐
+│                    2. IMPLEMENTATION (STRICT TDD)                           │
+│                                                                             │
+│   ┌─────────────────────────────┐     ┌─────────────────────────────┐      │
+│   │      forge-backend          │     │      forge-frontend         │      │
+│   │                             │     │                             │      │
+│   │  1. Write Tests FIRST       │     │  1. Write Tests FIRST       │      │
+│   │  2. Implement Minimal Logic │ AND │  2. Write Storybook Stories │      │
+│   │  3. Refactor                │     │  3. Implement Minimal UI    │      │
+│   │  4. Verify                  │     │  4. Refactor & Verify       │      │
+│   │                             │     │                             │      │
+│   │  ⚠️ NO CODE BEFORE TESTS    │     │  ⚠️ NO CODE BEFORE TESTS    │      │
+│   └─────────────────────────────┘     └─────────────────────────────┘      │
+│                                                                             │
+│   Both agents MUST use Context7 for library best practices                 │
+└─────────────────────────────────┬───────────────────────────────────────────┘
+                                  │
+                                  ▼
+┌────────────────────────────────────────────────────────────────────────────┐
+│                  3. ORCHESTRATED CODE REVIEW                                │
+│                                                                             │
+│                    forge-review-orchestrator                                │
+│                            │                                                │
+│              ┌─────────────┴─────────────┐                                 │
+│              ▼                           ▼                                 │
+│   ┌─────────────────────┐     ┌─────────────────────┐                      │
+│   │ forge-backend-      │     │ forge-frontend-     │                      │
+│   │ code-reviewer       │     │ code-reviewer       │                      │
+│   │                     │     │                     │                      │
+│   │ • TDD compliance    │     │ • TDD compliance    │                      │
+│   │ • RLS validation    │     │ • Playwright tests  │                      │
+│   │ • Security review   │     │ • Figma comparison  │                      │
+│   │ • Context7 verify   │     │ • Context7 verify   │                      │
+│   └─────────────────────┘     └─────────────────────┘                      │
+│              │                           │                                 │
+│              └─────────────┬─────────────┘                                 │
+│                            ▼                                               │
+│              ┌─────────────────────────┐                                   │
+│              │ forge-end-to-end-       │                                   │
+│              │ code-reviewer           │                                   │
+│              │                         │                                   │
+│              │ • Full integration test │                                   │
+│              │ • Acceptance criteria   │                                   │
+│              │ • Create follow-up tasks│                                   │
+│              └─────────────────────────┘                                   │
+│                            │                                               │
+│              ┌─────────────┴─────────────┐                                 │
+│              ▼                           ▼                                 │
+│         ❌ Issues Found            ✅ Approved                             │
+│              │                           │                                 │
+│              ▼                           ▼                                 │
+│    Return to Step 2              Mark Feature Complete                     │
+│    with follow-up tasks                                                    │
+└────────────────────────────────────────────────────────────────────────────┘
+```
 
-2. forge-backend / forge-frontend  
-   → implement feature + tests
-
-3. forge-code-review  
-   → mandatory review + refinements
-
-4. Done only after code-review passes
-
-NO feature may skip this pipeline.
+**Workflow Rules**:
+1. NO feature may skip this pipeline
+2. NO implementation may proceed without tests written first
+3. ALL reviewers must approve before feature is complete
+4. Critical issues trigger workflow restart from implementation phase
+5. All agents must use Context7 for library documentation
 
 ---
 
