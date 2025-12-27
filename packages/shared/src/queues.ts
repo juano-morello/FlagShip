@@ -18,6 +18,8 @@ export const QUEUE_NAMES = {
   STRIPE_USAGE_REPORT: 'stripe-usage-report',
   ACTIVE_SEATS: 'active-seats',
   AI_TASK: 'ai-task',
+  FLAGSHIP_USAGE_INGEST: 'flagship:usage-ingest',
+  FLAGSHIP_USAGE_INGEST_DLQ: 'flagship:usage-ingest-dlq',
 } as const;
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];

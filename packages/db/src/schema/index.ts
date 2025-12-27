@@ -54,6 +54,38 @@ export { plans } from './plans';
 export { impersonationSessions, impersonationSessionsRelations } from './impersonation-sessions';
 export { aiUsage, aiUsageRelations } from './ai-usage';
 
+// FlagShip Tables
+export {
+  // Environments
+  environments,
+  environmentsRelations,
+  environmentTypeEnum,
+  // Features
+  flagshipFeatures,
+  flagshipFeaturesRelations,
+  flagshipFeatureRules,
+  flagshipFeatureRulesRelations,
+  featureTypeEnum,
+  // Plan Features
+  flagshipPlanFeatures,
+  flagshipPlanFeaturesRelations,
+  // Usage Metrics
+  flagshipUsageMetrics,
+  flagshipUsageMetricsRelations,
+  flagshipUsageLimits,
+  flagshipUsageLimitsRelations,
+  limitTypeEnum,
+  periodTypeEnum,
+  limitEnforcementEnum,
+  // Evaluation Logs
+  flagshipEvaluationLogs,
+  flagshipEvaluationLogsRelations,
+  // Audit Events
+  flagshipAuditEvents,
+  flagshipAuditEventsRelations,
+  actorTypeEnum,
+} from './flagship';
+
 // Types
 export type {
   User, NewUser,
@@ -98,3 +130,22 @@ export type { Plan, NewPlan } from './plans';
 export type { ImpersonationSession, NewImpersonationSession } from './impersonation-sessions';
 export type { AiUsage, NewAiUsage } from './ai-usage';
 
+// FlagShip Types
+export type {
+  Environment,
+  NewEnvironment,
+  FlagshipFeature,
+  NewFlagshipFeature,
+  FlagshipFeatureRule,
+  NewFlagshipFeatureRule,
+  FlagshipPlanFeature,
+  NewFlagshipPlanFeature,
+  FlagshipUsageMetric,
+  NewFlagshipUsageMetric,
+  FlagshipUsageLimit,
+  NewFlagshipUsageLimit,
+  FlagshipEvaluationLog,
+  NewFlagshipEvaluationLog,
+  FlagshipAuditEvent,
+  NewFlagshipAuditEvent,
+} from './flagship';

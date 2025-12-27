@@ -32,6 +32,9 @@ describe('Queues', () => {
         'USAGE_AGGREGATION',
         'STRIPE_USAGE_REPORT',
         'ACTIVE_SEATS',
+        'AI_TASK',
+        'FLAGSHIP_USAGE_INGEST',
+        'FLAGSHIP_USAGE_INGEST_DLQ',
       ];
 
       expectedQueues.forEach((queueName) => {
@@ -53,6 +56,9 @@ describe('Queues', () => {
       expect(QUEUE_NAMES.USAGE_AGGREGATION).toBe('usage-aggregation');
       expect(QUEUE_NAMES.STRIPE_USAGE_REPORT).toBe('stripe-usage-report');
       expect(QUEUE_NAMES.ACTIVE_SEATS).toBe('active-seats');
+      expect(QUEUE_NAMES.AI_TASK).toBe('ai-task');
+      expect(QUEUE_NAMES.FLAGSHIP_USAGE_INGEST).toBe('flagship:usage-ingest');
+      expect(QUEUE_NAMES.FLAGSHIP_USAGE_INGEST_DLQ).toBe('flagship:usage-ingest-dlq');
     });
 
     it('should have string values for all queue names', () => {
@@ -69,10 +75,10 @@ describe('Queues', () => {
       expect(uniqueValues.size).toBe(values.length);
     });
 
-    it('should use kebab-case for queue name values', () => {
+    it('should use kebab-case or colon-separated format for queue name values', () => {
       Object.values(QUEUE_NAMES).forEach((value) => {
-        // Should match kebab-case pattern (lowercase with hyphens)
-        expect(value).toMatch(/^[a-z]+(-[a-z]+)*$/);
+        // Should match kebab-case pattern (lowercase with hyphens) or colon-separated (e.g., flagship:usage-ingest)
+        expect(value).toMatch(/^[a-z]+([:-][a-z]+)*$/);
       });
     });
   });
@@ -106,9 +112,12 @@ describe('Queues', () => {
         QUEUE_NAMES.USAGE_AGGREGATION,
         QUEUE_NAMES.STRIPE_USAGE_REPORT,
         QUEUE_NAMES.ACTIVE_SEATS,
+        QUEUE_NAMES.AI_TASK,
+        QUEUE_NAMES.FLAGSHIP_USAGE_INGEST,
+        QUEUE_NAMES.FLAGSHIP_USAGE_INGEST_DLQ,
       ];
 
-      expect(queueNames).toHaveLength(13);
+      expect(queueNames).toHaveLength(16);
       queueNames.forEach((name) => {
         expect(typeof name).toBe('string');
       });

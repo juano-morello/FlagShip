@@ -55,6 +55,9 @@ export const AVAILABLE_SCOPES = [
   'files:write',
   'api-keys:read',
   'api-keys:write',
+  // FlagShip control plane scopes
+  'evaluate:read',
+  'usage:write',
   '*',
 ] as const;
 

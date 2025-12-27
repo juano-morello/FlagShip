@@ -16,6 +16,7 @@ import { handleUsageAggregation, UsageAggregationJobData } from './handlers/usag
 import { handleStripeUsageReport, StripeUsageReportJobData } from './handlers/stripe-usage-report.handler';
 import { handleActiveSeats, ActiveSeatsJobData } from './handlers/active-seats.handler';
 import { handleAITask, AITaskJobData } from './handlers/ai-task.handler';
+import { handleFlagshipUsageIngest, FlagshipUsageIngestJobData } from './handlers/flagship-usage-ingest.handler';
 import { createLogger } from './telemetry/logger';
 import { withTracing } from './telemetry/tracing';
 
@@ -69,6 +70,7 @@ createWorker<UsageAggregationJobData>(QUEUE_NAMES.USAGE_AGGREGATION, handleUsage
 createWorker<StripeUsageReportJobData>(QUEUE_NAMES.STRIPE_USAGE_REPORT, handleStripeUsageReport);
 createWorker<ActiveSeatsJobData>(QUEUE_NAMES.ACTIVE_SEATS, handleActiveSeats);
 createWorker<AITaskJobData>(QUEUE_NAMES.AI_TASK, handleAITask);
+createWorker<FlagshipUsageIngestJobData>(QUEUE_NAMES.FLAGSHIP_USAGE_INGEST, handleFlagshipUsageIngest);
 
 // Graceful shutdown
 async function shutdown() {

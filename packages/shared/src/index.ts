@@ -36,6 +36,12 @@ export * from './types';
 export * from './logger';
 
 /**
+ * Export FlagShip utilities (Node.js only - uses Redis)
+ */
+export * from './flagship/idempotency';
+export * from './flagship/usage';
+
+/**
  * Common response type for API endpoints
  */
 export interface ApiResponse<T> {

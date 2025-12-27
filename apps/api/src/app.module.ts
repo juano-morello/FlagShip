@@ -37,6 +37,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { UsageModule } from './usage/usage.module';
 import { ImpersonationModule } from './impersonation/impersonation.module';
 import { AiModule } from './ai/ai.module';
+import { FlagshipModule } from './flagship/flagship.module';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { AiModule } from './ai/ai.module';
     UsageModule,
     DashboardModule,
     AiModule,
+    FlagshipModule,
   ],
   providers: [
     {

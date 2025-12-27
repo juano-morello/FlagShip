@@ -1,5 +1,5 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import { Queue } from 'bullmq';
+import { Queue, type JobsOptions } from 'bullmq';
 import IORedis from 'ioredis';
 import { ConfigService } from '@nestjs/config';
 
@@ -21,7 +21,7 @@ export class QueueService implements OnModuleDestroy {
     return this.queues.get(name)!;
   }
 
-  async addJob<T>(queueName: string, data: T, options?: { delay?: number }) {
+  async addJob<T>(queueName: string, data: T, options?: JobsOptions) {
     const queue = this.getQueue(queueName);
     return queue.add(queueName, data, options);
   }
